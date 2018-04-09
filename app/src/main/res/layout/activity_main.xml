@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="io.github.stemlab.androidsensorreader.MainActivity">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        >
+
+        <TextView
+            android:id="@+id/acc_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:textSize="18sp"
+
+            android:inputType="textPersonName"
+            android:text="Accelerometer data: " />
+
+        <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:padding="5dp"
+            android:gravity="center"
+            >
+
+            <TextView
+                android:id="@+id/acc_x_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="17dp"
+                android:layout_toStartOf="@+id/acc_y_data"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textColor="#ff0000"
+                android:textSize="18sp"
+                />
+
+            <TextView
+                android:id="@+id/acc_y_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textSize="18sp"
+                android:textColor="#0000ff" />
+
+            <TextView
+                android:id="@+id/acc_z_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="14dp"
+                android:layout_toEndOf="@+id/acc_y_data"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textSize="18sp"
+                android:textColor="#006600" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:text="Gyroscope data: "
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:textSize="18sp"
+            />
+
+        <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:padding="5dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/gyr_x_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="17dp"
+                android:layout_toStartOf="@+id/gyr_y_data"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textSize="18sp"
+                android:textColor="#ff0000" />
+
+            <TextView
+                android:id="@+id/gyr_y_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textSize="18sp"
+                android:textColor="#0000ff" />
+
+            <TextView
+                android:id="@+id/gyr_z_data"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="14dp"
+                android:layout_toEndOf="@+id/gyr_y_data"
+                android:inputType="numberDecimal"
+                android:text="0.0"
+                android:textSize="18sp"
+                android:textColor="#006600" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/rate_cap_text_view"
+            android:text="@string/rate_cap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:textSize="18sp"
+            />
+
+        <Button
+            android:id="@+id/acc_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Button" />
+
+
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

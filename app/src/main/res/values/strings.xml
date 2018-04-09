@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">AndroidSensorReader</string>
+    <string name="rate_cap">Sampling Rate: A (%d Hz) G (%d Hz)</string>
+    <string name="button_start">Start</string>
+    <string name="button_stop">Stop</string>
+    <string name="initial_values">0.0</string>
+</resources>
