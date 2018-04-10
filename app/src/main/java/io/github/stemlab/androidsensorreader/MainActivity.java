@@ -11,6 +11,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
+
+import static io.github.stemlab.androidsensorreader.utils.CSVUtils.writeLine;
+
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager sensorManager;
@@ -34,6 +39,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String defValue;
     private String buttonStartCaption;
     private String buttonStopCaption;
+    private File accDataFile;
+    private String accDataFileTemplate = "acc_sample_";
+    private File gyrDataFile;
+    private String gyrDataFileTemplate = "gyr_sample_";
+    private int fileCounter = 1;
+    private File dataDirectory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
+        dataDirectory = getApplicationContext().getDir("SensorData", Context.MODE_PRIVATE);
+
         setupButtons();
     }
 
@@ -72,6 +85,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             accX.setText(String.valueOf(sensorEvent.values[0]));
             accY.setText(String.valueOf(sensorEvent.values[1]));
             accZ.setText(String.valueOf(sensorEvent.values[2]));
+
+            try {
+                writeLine(accDataFile, sensorEvent.values);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             long currentMillisec = System.currentTimeMillis();
             if (accBaseMillisec < 0) {
@@ -90,6 +109,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gyrY.setText(String.valueOf(sensorEvent.values[1]));
             gyrZ.setText(String.valueOf(sensorEvent.values[2]));
 
+            try {
+                writeLine(gyrDataFile, sensorEvent.values);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             long currentMillisec = System.currentTimeMillis();
 
             if (gyrBaseMillisec < 0) {
@@ -104,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         } else {
             // unkown sensor type;
-            // TODO: throw exception unkown sensor
+            // TODO: throw exception unknown sensor
         }
     }
 
@@ -133,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 } else {
                     isPressed = true;
                     registerSensorListener();
+                    accDataFile = new File(dataDirectory, accDataFileTemplate + fileCounter);
+                    gyrDataFile = new File(dataDirectory, gyrDataFileTemplate + fileCounter);
+                    fileCounter++;
                 }
             }
         });

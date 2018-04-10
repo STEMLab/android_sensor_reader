@@ -1,23 +1,24 @@
 package io.github.stemlab.androidsensorreader.utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CSVUtils {
     private static final char SEPARATOR = ',';
 
-    public static void writeLine(Writer w, List<String> values) throws IOException {
-        writeLine(w, values, SEPARATOR, ' ');
+    public static void writeLine(File filename, List<String> values) throws IOException {
+        writeLine(filename, values, SEPARATOR, ' ');
     }
 
-    public static void writeLine(Writer w, float[] values) throws IOException {
+    public static void writeLine(File filename, float[] values) throws IOException {
         List<String> lines = new ArrayList<>(values.length);
         for (float f : values) {
             lines.add(String.valueOf(f));
         }
-        writeLine(w, lines, SEPARATOR, ' ');
+        writeLine(filename, lines, SEPARATOR, ' ');
     }
 
     private static String followCVSformat(String value) {
@@ -30,7 +31,7 @@ public class CSVUtils {
 
     }
 
-    public static void writeLine(Writer w, List<String> values, char separators, char customQuote) throws IOException {
+    public static void writeLine(File file, List<String> values, char separators, char customQuote) throws IOException {
 
         boolean first = true;
 
@@ -52,6 +53,11 @@ public class CSVUtils {
             first = false;
         }
         sb.append("\n");
-        w.append(sb.toString());
+        FileOutputStream stream = new FileOutputStream(file, true);
+        try {
+            stream.write(sb.toString().getBytes());
+        } finally {
+            stream.close();
+        }
     }
 }
