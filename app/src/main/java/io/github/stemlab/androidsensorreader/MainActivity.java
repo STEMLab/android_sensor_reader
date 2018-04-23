@@ -9,6 +9,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         accX = findViewById(R.id.acc_x_data);
         accY = findViewById(R.id.acc_y_data);
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyrZ = findViewById(R.id.gyr_z_data);
 
         rateCaptionTextView = findViewById(R.id.rate_cap_text_view);
-        accButton = findViewById(R.id.acc_button);
+        accButton = findViewById(R.id.sensor_start);
 
         rateCaption = getString(R.string.rate_cap);
         defValue = getString(R.string.initial_values);
@@ -154,11 +156,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onResume() {
         super.onResume();
-        updateButtons();
     }
 
     protected void onPause() {
         super.onPause();
+        isPressed = false;
         unRegisterSensorListener();
     }
 

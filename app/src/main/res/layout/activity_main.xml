@@ -136,10 +136,10 @@
 
 
         <Button
-            android:id="@+id/acc_button"
+            android:id="@+id/sensor_start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Button" />
+            android:text="@string/button_start" />
 
 
     </LinearLayout>
