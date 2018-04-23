@@ -1,6 +1,7 @@
 package io.github.stemlab.androidsensorreader;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,6 +12,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.Viewport;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -18,10 +24,12 @@ import static io.github.stemlab.androidsensorreader.utils.CSVUtils.writeLine;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
+    private static int MAX_GRAPH_SAMPLES = 250; // with 50 HZ store last 5 sec
     private SensorManager sensorManager;
     private Sensor senAccelerometer;
     private Sensor senGyroscope;
-
+    private GraphView accGraph;
+    private GraphView gyrGraph;
     private TextView accX;
     private TextView accY;
     private TextView accZ;
@@ -30,11 +38,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView gyrZ;
     private TextView rateCaptionTextView;
     private Button accButton;
-
     private boolean isPressed = false;
     private long accBaseMillisec = -1L, gyrBaseMillisec = -1L;
     private long accSamplesPerSec = 0, gyrSamplesPerSec = 0;
-
     private String rateCaption;
     private String defValue;
     private String buttonStartCaption;
@@ -45,6 +51,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String gyrDataFileTemplate = "gyr_sample_";
     private int fileCounter = 1;
     private File dataDirectory;
+    private LineGraphSeries<DataPoint> accXSeries;
+    private LineGraphSeries<DataPoint> accYSeries;
+    private LineGraphSeries<DataPoint> accZSeries;
+    private LineGraphSeries<DataPoint> gyrXSeries;
+    private LineGraphSeries<DataPoint> gyrYSeries;
+    private LineGraphSeries<DataPoint> gyrZSeries;
+    private int lastAccSample = 0;
+    private int lastGyrSample = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +87,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         dataDirectory = getApplicationContext().getDir("SensorData", Context.MODE_PRIVATE);
 
+        accGraph = findViewById(R.id.acc_graph);
+        gyrGraph = findViewById(R.id.gyr_graph);
+
+        setupGraph();
         setupButtons();
     }
 
@@ -82,9 +100,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Sensor sensor = sensorEvent.sensor;
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            accX.setText(String.valueOf(sensorEvent.values[0]));
-            accY.setText(String.valueOf(sensorEvent.values[1]));
-            accZ.setText(String.valueOf(sensorEvent.values[2]));
+            updateTextAndGraphValues(sensorEvent.values, sensor.getType());
 
             try {
                 writeLine(accDataFile, sensorEvent.values);
@@ -105,9 +121,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
-            gyrX.setText(String.valueOf(sensorEvent.values[0]));
-            gyrY.setText(String.valueOf(sensorEvent.values[1]));
-            gyrZ.setText(String.valueOf(sensorEvent.values[2]));
+            updateTextAndGraphValues(sensorEvent.values, sensor.getType());
 
             try {
                 writeLine(gyrDataFile, sensorEvent.values);
@@ -166,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
+
     private void updateButtons() {
         if (isPressed) {
             accButton.setText(buttonStopCaption);
@@ -183,6 +198,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void unRegisterSensorListener() {
 
+        resetTextAndGraphValues();
+
+        updateButtons();
+
+        sensorManager.unregisterListener(this);
+    }
+
+    public void resetTextAndGraphValues() {
+
         accX.setText(defValue);
         accY.setText(defValue);
         accZ.setText(defValue);
@@ -190,8 +214,80 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyrY.setText(defValue);
         gyrZ.setText(defValue);
 
-        updateButtons();
 
-        sensorManager.unregisterListener(this);
+        accXSeries.resetData(new DataPoint[0]);
+        accYSeries.resetData(new DataPoint[0]);
+        accZSeries.resetData(new DataPoint[0]);
+
+        gyrXSeries.resetData(new DataPoint[0]);
+        gyrYSeries.resetData(new DataPoint[0]);
+        gyrZSeries.resetData(new DataPoint[0]);
+
+        lastAccSample = 0;
+        lastGyrSample = 0;
+    }
+
+    private void setupGraph() {
+
+        ///Accelerometer graph
+        accXSeries = new LineGraphSeries<>();
+        accYSeries = new LineGraphSeries<>();
+        accZSeries = new LineGraphSeries<>();
+        accGraph.addSeries(accXSeries);
+        accGraph.addSeries(accYSeries);
+        accGraph.addSeries(accZSeries);
+
+        accXSeries.setColor(Color.RED);
+        accYSeries.setColor(Color.BLUE);
+        accZSeries.setColor(Color.GREEN);
+
+        ///Gyroscope graph
+        gyrXSeries = new LineGraphSeries<>();
+        gyrYSeries = new LineGraphSeries<>();
+        gyrZSeries = new LineGraphSeries<>();
+        gyrGraph.addSeries(gyrXSeries);
+        gyrGraph.addSeries(gyrYSeries);
+        gyrGraph.addSeries(gyrZSeries);
+
+        gyrXSeries.setColor(Color.RED);
+        gyrYSeries.setColor(Color.BLUE);
+        gyrZSeries.setColor(Color.GREEN);
+
+        // customize a little bit viewport
+        Viewport accViewport = accGraph.getViewport();
+        Viewport gyrViewport = gyrGraph.getViewport();
+        //viewport.setYAxisBoundsManual(true);
+        //viewport.setMinY(-10);
+        //viewport.setMaxY(10);
+        accViewport.setScrollable(true);
+        gyrViewport.setScrollable(true);
+
+    }
+
+    private void updateTextAndGraphValues(float[] values, int sensorType) {
+        if (sensorType == Sensor.TYPE_ACCELEROMETER) {
+
+            accX.setText(String.valueOf(values[0]));
+            accY.setText(String.valueOf(values[1]));
+            accZ.setText(String.valueOf(values[2]));
+
+            accXSeries.appendData(new DataPoint(lastAccSample++, values[0]), false, MAX_GRAPH_SAMPLES);
+            accYSeries.appendData(new DataPoint(lastAccSample++, values[1]), false, MAX_GRAPH_SAMPLES);
+            accZSeries.appendData(new DataPoint(lastAccSample++, values[2]), false, MAX_GRAPH_SAMPLES);
+
+        } else if (sensorType == Sensor.TYPE_GYROSCOPE) {
+
+            gyrX.setText(String.valueOf(values[0]));
+            gyrY.setText(String.valueOf(values[1]));
+            gyrZ.setText(String.valueOf(values[2]));
+
+            gyrXSeries.appendData(new DataPoint(lastGyrSample++, values[0]), false, MAX_GRAPH_SAMPLES);
+            gyrYSeries.appendData(new DataPoint(lastGyrSample++, values[1]), false, MAX_GRAPH_SAMPLES);
+            gyrZSeries.appendData(new DataPoint(lastGyrSample++, values[2]), false, MAX_GRAPH_SAMPLES);
+
+        } else {
+            // unkown sensor type;
+            // TODO: throw exception unknown sensor
+        }
     }
 }
