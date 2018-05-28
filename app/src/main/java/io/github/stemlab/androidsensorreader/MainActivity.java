@@ -20,12 +20,17 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.github.stemlab.androidsensorreader.pojo.Signal;
 
 import static io.github.stemlab.androidsensorreader.utils.CSVUtils.writeLine;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private static int MAX_GRAPH_SAMPLES = 250; // with 50 HZ store last 5 sec
+    private TensorFlowClassifier classifier;
     private SensorManager sensorManager;
     private Sensor senAccelerometer;
     private Sensor senGyroscope;
@@ -40,8 +45,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView rateCaptionTextView;
     private Button accButton;
     private boolean isPressed = false;
-    private long accBaseMillisec = -1L, gyrBaseMillisec = -1L;
-    private long accSamplesPerSec = 0, gyrSamplesPerSec = 0;
+    //private long accBaseMillisec = -1L, gyrBaseMillisec = -1L;
+    //private long accSamplesPerSec = 0, gyrSamplesPerSec = 0;
+    private long baseMillisec = -1L;
     private String rateCaption;
     private String defValue;
     private String buttonStartCaption;
@@ -60,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private LineGraphSeries<DataPoint> gyrZSeries;
     private int lastAccSample = 0;
     private int lastGyrSample = 0;
+    private List<Signal> accelerometerSamples;
+    private List<Signal> gyroscopeSamples;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +100,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accGraph = findViewById(R.id.acc_graph);
         gyrGraph = findViewById(R.id.gyr_graph);
 
+        classifier = new TensorFlowClassifier(getApplicationContext());
+        accelerometerSamples = new ArrayList<>();
+        gyroscopeSamples = new ArrayList<>();
+
+        rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
         setupGraph();
         setupButtons();
     }
@@ -100,6 +114,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
+
+
+        activityPrediction();
+
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             updateTextAndGraphValues(sensorEvent.values, sensor.getType());
@@ -110,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 e.printStackTrace();
             }
 
-            long currentMillisec = System.currentTimeMillis();
+            /*long currentMillisec = System.currentTimeMillis();
             if (accBaseMillisec < 0) {
                 accBaseMillisec = currentMillisec;
                 accSamplesPerSec = 0;
@@ -120,7 +138,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 rateCaptionTextView.setText(String.format(rateCaption, accSamplesPerSec, gyrSamplesPerSec));
                 accSamplesPerSec = 1;
                 accBaseMillisec = currentMillisec;
-            }
+            }*/
+
+            accelerometerSamples.add(new Signal(sensorEvent.values[0], sensorEvent.values[1], sensorEvent.values[2], sensorEvent.timestamp));
+
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
             updateTextAndGraphValues(sensorEvent.values, sensor.getType());
@@ -131,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 e.printStackTrace();
             }
 
-            long currentMillisec = System.currentTimeMillis();
+            /*long currentMillisec = System.currentTimeMillis();
 
             if (gyrBaseMillisec < 0) {
                 gyrBaseMillisec = currentMillisec;
@@ -142,11 +163,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 rateCaptionTextView.setText(String.format(rateCaption, accSamplesPerSec, gyrSamplesPerSec));
                 gyrSamplesPerSec = 1;
                 gyrBaseMillisec = currentMillisec;
-            }
+            }*/
+
+            gyroscopeSamples.add(new Signal(sensorEvent.values[0], sensorEvent.values[1], sensorEvent.values[2], sensorEvent.timestamp));
         } else {
             // unkown sensor type;
             // TODO: throw exception unknown sensor
         }
+
+
     }
 
     @Override
@@ -161,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onPause() {
         super.onPause();
         isPressed = false;
+        baseMillisec = -1L;
         unRegisterSensorListener();
     }
 
@@ -171,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (isPressed) {
                     isPressed = false;
                     unRegisterSensorListener();
+                    baseMillisec = -1L;
                 } else {
                     isPressed = true;
                     registerSensorListener();
@@ -189,10 +216,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else {
             accButton.setText(buttonStartCaption);
         }
-        rateCaptionTextView.setText(String.format(rateCaption, 0, 0));
+        rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
     }
 
     public void registerSensorListener() {
+        //SENSOR_DELAY_GAME = 50HZ
+        //SENSOR_DELAY_UI = 17HZ
+        //SENSOR_DELAY_FASTEST = 500hz
+        //SENSOR_DELAY_NORMAL = 6Hz
         sensorManager.registerListener(this, senAccelerometer, SensorManager.SENSOR_DELAY_GAME);
         sensorManager.registerListener(this, senGyroscope, SensorManager.SENSOR_DELAY_GAME);
         updateButtons();
@@ -291,5 +322,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // unkown sensor type;
             // TODO: throw exception unknown sensor
         }
+    }
+
+    private void activityPrediction() {
+
+
+        long currentMillisec = System.currentTimeMillis();
+
+        if (baseMillisec < 0) {
+            baseMillisec = currentMillisec;
+        } else if ((currentMillisec - baseMillisec) >= 5000L) {
+            baseMillisec = currentMillisec;
+
+            //float[] results = classifier.predictProbabilities(toFloatArray(D));
+            if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
+                float[] results = classifier.prepareDataForClassifier(accelerometerSamples, gyroscopeSamples);
+                rateCaptionTextView.setText(String.format(rateCaption, results[0], results[1], results[2], results[3], results[4], results[5]));
+            }
+
+            accelerometerSamples.clear();
+            gyroscopeSamples.clear();
+        }
+    }
+
+    private float[] toFloatArray(List<Float> list) {
+        int i = 0;
+        float[] array = new float[list.size()];
+
+        for (Float f : list) {
+            array[i++] = (f != null ? f : Float.NaN);
+        }
+        return array;
     }
 }
