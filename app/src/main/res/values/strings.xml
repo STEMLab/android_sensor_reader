@@ -4,4 +4,12 @@
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
     <string name="initial_values">0.0</string>
+    <string-array name="actions_array">
+        <item>bike</item>
+        <item>sit</item>
+        <item>stand</item>
+        <item>walk</item>
+        <item>stairsup</item>
+        <item>stairsdown</item>
+    </string-array>
 </resources>

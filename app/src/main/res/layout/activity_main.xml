@@ -126,13 +126,18 @@
             android:layout_height="200dip"
             android:padding="10dp" />
 
-        <TextView
-            android:id="@+id/rate_cap_text_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:text="@string/rate_cap"
-            android:textSize="18sp" />
+        <!-- <TextView
+             android:id="@+id/rate_cap_text_view"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:ems="10"
+             android:text="@string/rate_cap"
+             android:textSize="18sp" />-->
+
+        <Spinner
+            android:id="@+id/actions_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
 
 
         <Button

@@ -4,13 +4,34 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import io.github.stemlab.androidsensorreader.pojo.Signal;
 
 public class CSVUtils {
     private static final char SEPARATOR = ',';
 
     public static void writeLine(File filename, List<String> values) throws IOException {
         writeLine(filename, values, SEPARATOR, ' ');
+    }
+
+    public static void writeSignal(File filename, List<HashMap> signals) throws IOException {
+        //writeLine(filename, values, SEPARATOR, ' ');
+
+        for (HashMap map : signals) {
+            List<String> values = new ArrayList<>();
+            String gyroscope = "{'Gyroscope':" + " [" + String.format("%f", ((Signal) map.get("Gyroscope")).getX()) + ", "
+                    + String.format("%f", ((Signal) map.get("Gyroscope")).getY()) + ", " + String.format("%f", ((Signal) map.get("Gyroscope")).getZ()) + "]";
+            String accelerometer = "'Accelerometer':" + " [" + String.format("%f", ((Signal) map.get("Accelerometer")).getX()) + ", "
+                    + String.format("%f", ((Signal) map.get("Accelerometer")).getY()) + ", " + String.format("%f", ((Signal) map.get("Accelerometer")).getZ()) + "]";
+            String time = "'Time':" + String.format("%d", (long) map.get("Time")) + "}";
+            values.add(gyroscope);
+            values.add(accelerometer);
+            values.add(time);
+            writeLine(filename, values, SEPARATOR, ' ');
+        }
+
     }
 
     public static void writeLine(File filename, float[] values) throws IOException {

@@ -10,7 +10,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
@@ -21,13 +24,14 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import io.github.stemlab.androidsensorreader.pojo.Globals;
 import io.github.stemlab.androidsensorreader.pojo.Signal;
+import io.github.stemlab.androidsensorreader.utils.CSVUtils;
 
-import static io.github.stemlab.androidsensorreader.utils.CSVUtils.writeLine;
-
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener,AdapterView.OnItemSelectedListener {
 
     private static int MAX_GRAPH_SAMPLES = 250; // with 50 HZ store last 5 sec
     private TensorFlowClassifier classifier;
@@ -52,11 +56,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String defValue;
     private String buttonStartCaption;
     private String buttonStopCaption;
-    private File accDataFile;
-    private String accDataFileTemplate = "acc_sample_";
-    private File gyrDataFile;
-    private String gyrDataFileTemplate = "gyr_sample_";
-    private int fileCounter = 1;
+    private File DataFile;
+    private String DataFileTemplate = "_sample_";
     private File dataDirectory;
     private LineGraphSeries<DataPoint> accXSeries;
     private LineGraphSeries<DataPoint> accYSeries;
@@ -68,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int lastGyrSample = 0;
     private List<Signal> accelerometerSamples;
     private List<Signal> gyroscopeSamples;
+    private Globals g;
+    private Spinner spinner;
+    private String currentAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyrY = findViewById(R.id.gyr_y_data);
         gyrZ = findViewById(R.id.gyr_z_data);
 
-        rateCaptionTextView = findViewById(R.id.rate_cap_text_view);
+        //rateCaptionTextView = findViewById(R.id.rate_cap_text_view);
         accButton = findViewById(R.id.sensor_start);
 
         rateCaption = getString(R.string.rate_cap);
@@ -104,7 +108,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelerometerSamples = new ArrayList<>();
         gyroscopeSamples = new ArrayList<>();
 
-        rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        //rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
+        g = Globals.getInstance();
+
+        spinner = findViewById(R.id.actions_spinner);
+        spinner.setOnItemSelectedListener(this);
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.actions_array, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
 
         setupGraph();
         setupButtons();
@@ -116,17 +132,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Sensor sensor = sensorEvent.sensor;
 
 
-        activityPrediction();
+        //activityPrediction();
 
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             updateTextAndGraphValues(sensorEvent.values, sensor.getType());
 
+/*
             try {
                 writeLine(accDataFile, sensorEvent.values);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+*/
 
             /*long currentMillisec = System.currentTimeMillis();
             if (accBaseMillisec < 0) {
@@ -146,11 +164,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             updateTextAndGraphValues(sensorEvent.values, sensor.getType());
 
-            try {
+/*            try {
                 writeLine(gyrDataFile, sensorEvent.values);
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
             /*long currentMillisec = System.currentTimeMillis();
 
@@ -198,12 +216,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     isPressed = false;
                     unRegisterSensorListener();
                     baseMillisec = -1L;
+                    writePairedSignal();
                 } else {
                     isPressed = true;
                     registerSensorListener();
-                    accDataFile = new File(dataDirectory, accDataFileTemplate + fileCounter);
-                    gyrDataFile = new File(dataDirectory, gyrDataFileTemplate + fileCounter);
-                    fileCounter++;
+                    DataFile = new File(dataDirectory, currentAction + DataFileTemplate + g.getData());
+                    ///fileCounter++;
+                    System.out.println(currentAction + DataFileTemplate + g.getData());
+                    g.setData(g.getData()+1);
                 }
             }
         });
@@ -216,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else {
             accButton.setText(buttonStartCaption);
         }
-        rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        //rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
     }
 
     public void registerSensorListener() {
@@ -324,25 +344,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void activityPrediction() {
+    private void writePairedSignal() {
 
 
-        long currentMillisec = System.currentTimeMillis();
+        /*long currentMillisec = System.currentTimeMillis();
 
         if (baseMillisec < 0) {
             baseMillisec = currentMillisec;
         } else if ((currentMillisec - baseMillisec) >= 5000L) {
-            baseMillisec = currentMillisec;
+            baseMillisec = currentMillisec;*/
 
             //float[] results = classifier.predictProbabilities(toFloatArray(D));
             if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
-                float[] results = classifier.prepareDataForClassifier(accelerometerSamples, gyroscopeSamples);
-                rateCaptionTextView.setText(String.format(rateCaption, results[0], results[1], results[2], results[3], results[4], results[5]));
+                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples);
+                //rateCaptionTextView.setText(String.format(rateCaption, results[0], results[1], results[2], results[3], results[4], results[5]));
+                try {
+                    CSVUtils.writeSignal(DataFile, results);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             accelerometerSamples.clear();
             gyroscopeSamples.clear();
-        }
+        //}
     }
 
     private float[] toFloatArray(List<Float> list) {
@@ -353,5 +378,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             array[i++] = (f != null ? f : Float.NaN);
         }
         return array;
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        currentAction = (String) adapterView.getItemAtPosition(i);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
     }
 }

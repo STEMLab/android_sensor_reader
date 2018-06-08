@@ -191,7 +191,7 @@ public class TensorFlowClassifier {
         return result;
     }
 
-    private List<HashMap> pairSignalsByTime(List<Signal> accelerometerSamples, List<Signal> gyroscopeSamples) {
+    public List<HashMap> pairSignalsByTime(List<Signal> accelerometerSamples, List<Signal> gyroscopeSamples) {
         int idx1 = 0;
         int idx2 = 0;
         List<HashMap> whole = new ArrayList<>();
@@ -204,7 +204,7 @@ public class TensorFlowClassifier {
 
             if (abs(curTime1 - curTime2) < 0.1) {
                 HashMap curSaveElem = new HashMap();
-                curSaveElem.put("Time", 0.5 * (curItem1.getTimestamp() + curItem2.getTimestamp()));
+                curSaveElem.put("Time", (long) (0.5 * (curItem1.getTimestamp() + curItem2.getTimestamp())));
                 curSaveElem.put("Accelerometer", curItem1);
                 curSaveElem.put("Gyroscope", curItem2);
                 whole.add(curSaveElem);
