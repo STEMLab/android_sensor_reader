@@ -1,5 +1,6 @@
 package io.github.stemlab.androidsensorreader;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -7,6 +8,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +18,10 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.indooratlas.android.sdk.IALocation;
+import com.indooratlas.android.sdk.IALocationListener;
+import com.indooratlas.android.sdk.IALocationManager;
+import com.indooratlas.android.sdk.IALocationRequest;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
@@ -28,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.github.stemlab.androidsensorreader.pojo.Globals;
+import io.github.stemlab.androidsensorreader.pojo.Location;
 import io.github.stemlab.androidsensorreader.pojo.Signal;
 import io.github.stemlab.androidsensorreader.utils.CSVUtils;
 
@@ -46,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView gyrX;
     private TextView gyrY;
     private TextView gyrZ;
-    private TextView rateCaptionTextView;
+    private TextView locCaptionTextView;
     private Button accButton;
     private boolean isPressed = false;
     //private long accBaseMillisec = -1L, gyrBaseMillisec = -1L;
@@ -68,10 +75,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int lastAccSample = 0;
     private int lastGyrSample = 0;
     private List<Signal> accelerometerSamples;
+    private HashMap<Long, Location> locationSamples;
     private List<Signal> gyroscopeSamples;
     private Globals g;
     private Spinner spinner;
     private String currentAction;
+    private final int CODE_PERMISSIONS = 1;
+    private IALocationManager mIALocationManager;
+    private Location lastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +91,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        String[] neededPermissions = {
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        };
+        ActivityCompat.requestPermissions( this, neededPermissions, CODE_PERMISSIONS);
+
+
+        mIALocationManager = IALocationManager.create(this);
+        mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
+        lastLocation = new Location();
+        locationSamples = new HashMap<>();
+
         accX = findViewById(R.id.acc_x_data);
         accY = findViewById(R.id.acc_y_data);
         accZ = findViewById(R.id.acc_z_data);
@@ -87,10 +111,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyrY = findViewById(R.id.gyr_y_data);
         gyrZ = findViewById(R.id.gyr_z_data);
 
-        //rateCaptionTextView = findViewById(R.id.rate_cap_text_view);
+        locCaptionTextView = findViewById(R.id.loc_cap_text_view);
         accButton = findViewById(R.id.sensor_start);
 
-        rateCaption = getString(R.string.rate_cap);
+        rateCaption = getString(R.string.loc_cap);
         defValue = getString(R.string.initial_values);
         buttonStartCaption = getString(R.string.button_start);
         buttonStopCaption = getString(R.string.button_stop);
@@ -108,22 +132,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelerometerSamples = new ArrayList<>();
         gyroscopeSamples = new ArrayList<>();
 
-        //rateCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        locCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0));
 
         g = Globals.getInstance();
 
         spinner = findViewById(R.id.actions_spinner);
         spinner.setOnItemSelectedListener(this);
-// Create an ArrayAdapter using the string array and a default spinner layout
+        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.actions_array, android.R.layout.simple_spinner_item);
-// Specify the layout to use when the list of choices appears
+        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-// Apply the adapter to the spinner
+        // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
         setupGraph();
         setupButtons();
+    }
+
+    private IALocationListener mIALocationListener = new IALocationListener() {
+
+        // Called when the location has changed.
+        @Override
+        public void onLocationChanged(IALocation location) {
+                lastLocation = new Location(location.getLatitude(), location.getLongitude(), location.getAccuracy());
+                locCaptionTextView.setText(String.format(rateCaption, lastLocation.getLatitude(), lastLocation.getLongitude(), lastLocation.getAccuracy()));
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+    };
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        //Handle if any of the permissions are denied, in grantResults
     }
 
     //invoke repeatedly when device is in motion
@@ -131,7 +177,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
 
-
+        if(sensor.getType() == Sensor.TYPE_ACCELEROMETER || sensor.getType() == Sensor.TYPE_GYROSCOPE){
+            locationSamples.put(sensorEvent.timestamp, lastLocation);
+        }
         //activityPrediction();
 
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -199,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onResume() {
         super.onResume();
+        mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
     }
 
     protected void onPause() {
@@ -206,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         isPressed = false;
         baseMillisec = -1L;
         unRegisterSensorListener();
+        mIALocationManager.removeLocationUpdates(mIALocationListener);
     }
 
     private void setupButtons() {
@@ -356,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             //float[] results = classifier.predictProbabilities(toFloatArray(D));
             if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
-                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples);
+                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples, locationSamples);
                 //rateCaptionTextView.setText(String.format(rateCaption, results[0], results[1], results[2], results[3], results[4], results[5]));
                 try {
                     CSVUtils.writeSignal(DataFile, results);

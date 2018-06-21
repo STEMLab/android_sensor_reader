@@ -2,6 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.github.stemlab.androidsensorreader">
 
+    <uses-feature android:name="android.hardware.sensor.accelerometer"
+        android:required="true" />
+    <uses-feature android:name="android.hardware.sensor.compass"
+        android:required="true" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope"
+        android:required="true" />
+    <uses-feature android:name="android.hardware.wifi"
+        android:required="true" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -17,6 +29,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!--indoor atlas meta-->
+        <meta-data
+            android:name="com.indooratlas.android.sdk.API_KEY"
+            android:value="b572709e-4d98-492f-93df-8aea75af477a"/>
+        <meta-data
+            android:name="com.indooratlas.android.sdk.API_SECRET"
+            android:value="XjBOjxDevEcE3Ym5mEtzLJtrWLwsNxkMTwDV0r7N8E5DLT9lz95xVcqEDJXJ8L1alUSnP5wMsE/rsiOibaUSa7zIvu79iXd3E69PKzHTK+6tPuzKutx+/h9aUalxVw=="/>
     </application>
 
 </manifest>

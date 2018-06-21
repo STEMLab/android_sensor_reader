@@ -126,13 +126,13 @@
             android:layout_height="200dip"
             android:padding="10dp" />
 
-        <!-- <TextView
-             android:id="@+id/rate_cap_text_view"
+        <TextView
+             android:id="@+id/loc_cap_text_view"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:ems="10"
-             android:text="@string/rate_cap"
-             android:textSize="18sp" />-->
+             android:text="@string/loc_cap"
+             android:textSize="18sp" />
 
         <Spinner
             android:id="@+id/actions_spinner"

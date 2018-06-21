@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import io.github.stemlab.androidsensorreader.pojo.Location;
 import io.github.stemlab.androidsensorreader.pojo.Signal;
 
 public class CSVUtils {
@@ -25,10 +26,13 @@ public class CSVUtils {
                     + String.format("%f", ((Signal) map.get("Gyroscope")).getY()) + ", " + String.format("%f", ((Signal) map.get("Gyroscope")).getZ()) + "]";
             String accelerometer = "'Accelerometer':" + " [" + String.format("%f", ((Signal) map.get("Accelerometer")).getX()) + ", "
                     + String.format("%f", ((Signal) map.get("Accelerometer")).getY()) + ", " + String.format("%f", ((Signal) map.get("Accelerometer")).getZ()) + "]";
-            String time = "'Time':" + String.format("%d", (long) map.get("Time")) + "}";
+            String time = "'Time':" + String.format("%d", (long) map.get("Time"));
+            String location = "'Location':" + " ["+String.format("%f", ((Location) map.get("Location")).getLatitude()) + ", "
+                    + String.format("%f", ((Location) map.get("Location")).getLongitude())+", " + String.format("%f", ((Location) map.get("Location")).getAccuracy())+"]"+ "}";
             values.add(gyroscope);
             values.add(accelerometer);
             values.add(time);
+            values.add(location);
             writeLine(filename, values, SEPARATOR, ' ');
         }
 
