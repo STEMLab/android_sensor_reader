@@ -17,18 +17,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.indooratlas.android.sdk.IALocation;
-import com.indooratlas.android.sdk.IALocationListener;
-import com.indooratlas.android.sdk.IALocationManager;
-import com.indooratlas.android.sdk.IALocationRequest;
+//import com.indooratlas.android.sdk.IALocation;
+//import com.indooratlas.android.sdk.IALocationListener;
+//import com.indooratlas.android.sdk.IALocationManager;
+//import com.indooratlas.android.sdk.IALocationRequest;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.sails.engine.SAILS;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,8 +84,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Spinner spinner;
     private String currentAction;
     private final int CODE_PERMISSIONS = 1;
-    private IALocationManager mIALocationManager;
+    //private IALocationManager mIALocationManager;
     private Location lastLocation;
+    static SAILS mSails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,8 +103,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ActivityCompat.requestPermissions( this, neededPermissions, CODE_PERMISSIONS);
 
 
-        mIALocationManager = IALocationManager.create(this);
-        mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
+        //mIALocationManager = IALocationManager.create(this);
+        //mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
         lastLocation = new Location();
         locationSamples = new HashMap<>();
 
@@ -146,11 +150,56 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
+
+        //SAILS BUILDNGO
+        //new a SAILS engine.
+        mSails = new SAILS(this);
+        //set location mode.
+        mSails.setMode(SAILS.WIFI_GFP_IMU);
+        //set floor number sort rule from descending to ascending.
+        mSails.setReverseFloorList(true);
+
+        mSails.loadCloudBuilding("8a5e3d1c9e664d43a25daba99348aee2", "53f33cd1f45da9105f000931", new SAILS.OnFinishCallback() {
+            @Override
+            public void onSuccess(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast t = Toast.makeText(getBaseContext(), "Building successfully loaded", Toast.LENGTH_SHORT);
+                        t.show();
+                    }
+                });
+                mSails.startLocatingEngine();
+            }
+
+            @Override
+            public void onFailed(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast t = Toast.makeText(getBaseContext(), "Fail on load building", Toast.LENGTH_SHORT);
+                        t.show();
+                    }
+                });
+            }
+        });
+
+        //create location change call back.
+        mSails.setOnLocationChangeEventListener(new SAILS.OnLocationChangeEventListener() {
+            @Override
+            public void OnLocationChange() {
+                if (mSails.isLocationEngineStarted() && mSails.isLocationFix()) {
+                    lastLocation = new Location(mSails.getLatitude(), mSails.getLongitude(), (float)mSails.getAccuracy());
+                    locCaptionTextView.setText(String.format(rateCaption, lastLocation.getLatitude(), lastLocation.getLongitude(), lastLocation.getAccuracy()));
+                }
+            }
+        });
+
         setupGraph();
         setupButtons();
     }
 
-    private IALocationListener mIALocationListener = new IALocationListener() {
+    /*private IALocationListener mIALocationListener = new IALocationListener() {
 
         // Called when the location has changed.
         @Override
@@ -163,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onStatusChanged(String s, int i, Bundle bundle) {
 
         }
-    };
+    };*/
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -247,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onResume() {
         super.onResume();
-        mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
+        //mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
     }
 
     protected void onPause() {
@@ -255,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         isPressed = false;
         baseMillisec = -1L;
         unRegisterSensorListener();
-        mIALocationManager.removeLocationUpdates(mIALocationListener);
+        //mIALocationManager.removeLocationUpdates(mIALocationListener);
     }
 
     private void setupButtons() {

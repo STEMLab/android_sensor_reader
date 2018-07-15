@@ -46,4 +46,5 @@ dependencies {
     compile group: 'com.github.wendykierp', name: 'JTransforms', version: '3.1'
     // indoor atlas dependency
     compile 'com.indooratlas.android:indooratlas-android-sdk:2.7.1@aar'
+    compile files('libs/SAILS_SDK_V1.73_Published.jar')
 }
