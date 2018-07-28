@@ -5,11 +5,26 @@
     <string name="button_stop">Stop</string>
     <string name="initial_values">0.0</string>
     <string-array name="actions_array">
-        <item>bike</item>
-        <item>sit</item>
-        <item>stand</item>
-        <item>walk</item>
-        <item>stairsup</item>
-        <item>stairsdown</item>
+        <item>write</item>
+        <item>type</item>
+        <item>listen</item>
+        <item>speak</item>
+    </string-array>
+    <string-array name="room_array">
+        <item>404</item>
+        <item>405</item>
+        <item>422</item>
+        <item>410</item>
+    </string-array>
+    <string-array name="user_array">
+        <item>1</item> <!--azamat-->
+        <item>2</item> <!--dongmin-->
+        <item>3</item> <!--hyemi-->
+        <item>4</item> <!--hyungyu-->
+        <item>5</item> <!--youngbok-->
+        <item>6</item> <!--byonggon-->
+        <item>7</item> <!--tahoon-->
+        <item>8</item> <!--juhyun nuna-->
+        <item>9</item> <!--professor li-->
     </string-array>
 </resources>

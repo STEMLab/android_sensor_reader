@@ -19,10 +19,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.indooratlas.android.sdk.IALocation;
-//import com.indooratlas.android.sdk.IALocationListener;
-//import com.indooratlas.android.sdk.IALocationManager;
-//import com.indooratlas.android.sdk.IALocationRequest;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
@@ -31,7 +27,6 @@ import com.sails.engine.SAILS;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,9 +36,16 @@ import io.github.stemlab.androidsensorreader.pojo.Location;
 import io.github.stemlab.androidsensorreader.pojo.Signal;
 import io.github.stemlab.androidsensorreader.utils.CSVUtils;
 
+//import com.indooratlas.android.sdk.IALocation;
+//import com.indooratlas.android.sdk.IALocationListener;
+//import com.indooratlas.android.sdk.IALocationManager;
+//import com.indooratlas.android.sdk.IALocationRequest;
+
 public class MainActivity extends AppCompatActivity implements SensorEventListener,AdapterView.OnItemSelectedListener {
 
+    static SAILS mSails;
     private static int MAX_GRAPH_SAMPLES = 250; // with 50 HZ store last 5 sec
+    private final int CODE_PERMISSIONS = 1;
     private TensorFlowClassifier classifier;
     private SensorManager sensorManager;
     private Sensor senAccelerometer;
@@ -81,12 +83,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private HashMap<Long, Location> locationSamples;
     private List<Signal> gyroscopeSamples;
     private Globals g;
-    private Spinner spinner;
+    private Spinner actionSpinner;
+    private Spinner userSpinner;
+    private Spinner roomSpinner;
     private String currentAction;
-    private final int CODE_PERMISSIONS = 1;
+    private String currentUser;
+    private String currentRoom;
     //private IALocationManager mIALocationManager;
     private Location lastLocation;
-    static SAILS mSails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,15 +144,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         g = Globals.getInstance();
 
-        spinner = findViewById(R.id.actions_spinner);
-        spinner.setOnItemSelectedListener(this);
+        actionSpinner = findViewById(R.id.actions_spinner);
+        actionSpinner.setOnItemSelectedListener(this);
+        userSpinner = findViewById(R.id.user_spinner);
+        userSpinner.setOnItemSelectedListener(this);
+        roomSpinner = findViewById(R.id.room_spinner);
+        roomSpinner.setOnItemSelectedListener(this);
+
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+        ArrayAdapter<CharSequence> actionAdapter = ArrayAdapter.createFromResource(this,
                 R.array.actions_array, android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
+        actionSpinner.setAdapter(actionAdapter);
+
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> userAdapter = ArrayAdapter.createFromResource(this,
+                R.array.user_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        userSpinner.setAdapter(userAdapter);
+
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> roomAdapter = ArrayAdapter.createFromResource(this,
+                R.array.room_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        roomAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        roomSpinner.setAdapter(roomAdapter);
 
 
         //SAILS BUILDNGO
@@ -319,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 } else {
                     isPressed = true;
                     registerSensorListener();
-                    DataFile = new File(dataDirectory, currentAction + DataFileTemplate + g.getData());
+                    DataFile = new File(dataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + g.getData());
                     ///fileCounter++;
                     System.out.println(currentAction + DataFileTemplate + g.getData());
                     g.setData(g.getData()+1);
@@ -481,7 +506,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        currentAction = (String) adapterView.getItemAtPosition(i);
+        switch (adapterView.getId()) {
+            case R.id.actions_spinner:
+                currentAction = (String) adapterView.getItemAtPosition(i);
+                break;
+            case R.id.room_spinner:
+                currentRoom = (String) adapterView.getItemAtPosition(i);
+                break;
+            case R.id.user_spinner:
+                currentUser = (String) adapterView.getItemAtPosition(i);
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
