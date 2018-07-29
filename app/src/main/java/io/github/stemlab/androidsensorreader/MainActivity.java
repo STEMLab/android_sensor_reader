@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -214,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void OnLocationChange() {
                 if (mSails.isLocationEngineStarted() && mSails.isLocationFix()) {
-                    lastLocation = new Location(mSails.getLatitude(), mSails.getLongitude(), (float)mSails.getAccuracy());
+                    lastLocation = new Location(mSails.getLatitude(), mSails.getLongitude(), mSails.getAccuracy());
                     locCaptionTextView.setText(String.format(rateCaption, lastLocation.getLatitude(), lastLocation.getLongitude(), lastLocation.getAccuracy()));
                 }
             }
@@ -477,20 +478,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             baseMillisec = currentMillisec;
         } else if ((currentMillisec - baseMillisec) >= 5000L) {
             baseMillisec = currentMillisec;*/
+        //float[] results = classifier.predictProbabilities(toFloatArray(D));
+        new SaveFileTask().execute(accelerometerSamples, gyroscopeSamples, locationSamples);
 
-            //float[] results = classifier.predictProbabilities(toFloatArray(D));
-            if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
-                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples, locationSamples);
-                //rateCaptionTextView.setText(String.format(rateCaption, results[0], results[1], results[2], results[3], results[4], results[5]));
-                try {
-                    CSVUtils.writeSignal(DataFile, results);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            accelerometerSamples.clear();
-            gyroscopeSamples.clear();
         //}
     }
 
@@ -524,5 +514,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
+    }
+
+    private class SaveFileTask extends AsyncTask<Object, Void, String> {
+
+        @Override
+        protected String doInBackground(Object... objects) {
+
+            if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
+                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples, locationSamples);
+                try {
+                    CSVUtils.writeSignal(DataFile, results);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            accelerometerSamples.clear();
+            gyroscopeSamples.clear();
+            locationSamples.clear();
+
+            return DataFile.getName();
+        }
+
+        protected void onPostExecute(String result) {
+            Toast t = Toast.makeText(getBaseContext(), "Saved: " + result, Toast.LENGTH_SHORT);
+            t.show();
+        }
     }
 }

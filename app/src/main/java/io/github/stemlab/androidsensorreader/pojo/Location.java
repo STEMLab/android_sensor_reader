@@ -5,9 +5,9 @@ public class Location {
 
     private double latitude;
     private double longitude;
-    private float accuracy;
+    private double accuracy;
 
-    public Location(double latitude, double longitude, float accuracy) {
+    public Location(double latitude, double longitude, double accuracy) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
@@ -35,7 +35,7 @@ public class Location {
         this.longitude = longitude;
     }
 
-    public float getAccuracy() {
+    public double getAccuracy() {
         return accuracy;
     }
 

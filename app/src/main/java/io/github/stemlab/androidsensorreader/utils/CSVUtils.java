@@ -3,6 +3,7 @@ package io.github.stemlab.androidsensorreader.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +28,8 @@ public class CSVUtils {
             String accelerometer = "'Accelerometer':" + " [" + String.format("%f", ((Signal) map.get("Accelerometer")).getX()) + ", "
                     + String.format("%f", ((Signal) map.get("Accelerometer")).getY()) + ", " + String.format("%f", ((Signal) map.get("Accelerometer")).getZ()) + "]";
             String time = "'Time':" + String.format("%d", (long) map.get("Time"));
-            String location = "'Location':" + " ["+String.format("%f", ((Location) map.get("Location")).getLatitude()) + ", "
-                    + String.format("%f", ((Location) map.get("Location")).getLongitude())+", " + String.format("%f", ((Location) map.get("Location")).getAccuracy())+"]"+ "}";
+            String location = "'Location':" + " [" + BigDecimal.valueOf(((Location) map.get("Location")).getLatitude()).toPlainString() + ", "
+                    + BigDecimal.valueOf(((Location) map.get("Location")).getLongitude()).toPlainString() + ", " + String.format("%f", ((Location) map.get("Location")).getAccuracy()) + "]" + "}";
             values.add(gyroscope);
             values.add(accelerometer);
             values.add(time);
