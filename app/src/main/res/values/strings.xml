@@ -27,4 +27,5 @@
         <item>8</item> <!--juhyun nuna-->
         <item>9</item> <!--professor li-->
     </string-array>
+    <integer name="def_counter">1</integer>
 </resources>

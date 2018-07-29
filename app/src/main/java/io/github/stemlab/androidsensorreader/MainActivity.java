@@ -2,6 +2,7 @@ package io.github.stemlab.androidsensorreader;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import io.github.stemlab.androidsensorreader.pojo.Globals;
 import io.github.stemlab.androidsensorreader.pojo.Location;
 import io.github.stemlab.androidsensorreader.pojo.Signal;
 import io.github.stemlab.androidsensorreader.utils.CSVUtils;
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     static SAILS mSails;
     private static int MAX_GRAPH_SAMPLES = 250; // with 50 HZ store last 5 sec
+    private static String SAVED_ID = "hhar_id";
     private final int CODE_PERMISSIONS = 1;
     private TensorFlowClassifier classifier;
     private SensorManager sensorManager;
@@ -83,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private List<Signal> accelerometerSamples;
     private HashMap<Long, Location> locationSamples;
     private List<Signal> gyroscopeSamples;
-    private Globals g;
     private Spinner actionSpinner;
     private Spinner userSpinner;
     private Spinner roomSpinner;
@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String currentRoom;
     //private IALocationManager mIALocationManager;
     private Location lastLocation;
+    private SharedPreferences sPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         locCaptionTextView.setText(String.format(rateCaption, 0.0, 0.0, 0.0));
 
-        g = Globals.getInstance();
+
 
         actionSpinner = findViewById(R.id.actions_spinner);
         actionSpinner.setOnItemSelectedListener(this);
@@ -345,10 +346,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 } else {
                     isPressed = true;
                     registerSensorListener();
-                    DataFile = new File(dataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + g.getData());
+                    int counter = getFileCounter();
+                    DataFile = new File(dataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + counter);
                     ///fileCounter++;
-                    System.out.println(currentAction + DataFileTemplate + g.getData());
-                    g.setData(g.getData()+1);
+                    System.out.println(currentAction + DataFileTemplate + counter);
+                    setFileCounter(counter + 1);
                 }
             }
         });
@@ -514,6 +516,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
+    }
+
+    int getFileCounter() {
+        sPref = getPreferences(MODE_PRIVATE);
+        int defaultValue = getResources().getInteger(R.integer.def_counter);
+        int count = sPref.getInt(SAVED_ID, defaultValue);
+        return count;
+    }
+
+    void setFileCounter(int count) {
+        sPref = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor ed = sPref.edit();
+        ed.putInt(SAVED_ID, count);
+        ed.commit();
     }
 
     private class SaveFileTask extends AsyncTask<Object, Void, String> {

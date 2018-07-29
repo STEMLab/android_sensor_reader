@@ -19,7 +19,6 @@ public class CSVUtils {
     }
 
     public static void writeSignal(File filename, List<HashMap> signals) throws IOException {
-        //writeLine(filename, values, SEPARATOR, ' ');
 
         for (HashMap map : signals) {
             List<String> values = new ArrayList<>();
