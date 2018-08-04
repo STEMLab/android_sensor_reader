@@ -70,9 +70,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String defValue;
     private String buttonStartCaption;
     private String buttonStopCaption;
-    private File DataFile;
+    private File sensorDataFile;
+    private File locDataFile;
     private String DataFileTemplate = "_sample_";
-    private File dataDirectory;
+    private File sensorDataDirectory;
+    private File locDataDirectory;
     private LineGraphSeries<DataPoint> accXSeries;
     private LineGraphSeries<DataPoint> accYSeries;
     private LineGraphSeries<DataPoint> accZSeries;
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int lastAccSample = 0;
     private int lastGyrSample = 0;
     private List<Signal> accelerometerSamples;
-    private HashMap<Long, Location> locationSamples;
+    private List<Location> locationSamples;
     private List<Signal> gyroscopeSamples;
     private Spinner actionSpinner;
     private Spinner userSpinner;
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //mIALocationManager = IALocationManager.create(this);
         //mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mIALocationListener);
         lastLocation = new Location();
-        locationSamples = new HashMap<>();
+        locationSamples = new ArrayList<>();
 
         accX = findViewById(R.id.acc_x_data);
         accY = findViewById(R.id.acc_y_data);
@@ -133,7 +135,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-        dataDirectory = getApplicationContext().getDir("SensorData", Context.MODE_PRIVATE);
+        sensorDataDirectory = getApplicationContext().getDir("sensor", Context.MODE_PRIVATE);
+        locDataDirectory = getApplicationContext().getDir("location", Context.MODE_PRIVATE);
 
         accGraph = findViewById(R.id.acc_graph);
         gyrGraph = findViewById(R.id.gyr_graph);
@@ -215,8 +218,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSails.setOnLocationChangeEventListener(new SAILS.OnLocationChangeEventListener() {
             @Override
             public void OnLocationChange() {
-                if (mSails.isLocationEngineStarted() && mSails.isLocationFix()) {
+                if (mSails.isLocationEngineStarted() && mSails.isLocationFix() && isPressed) {
                     lastLocation = new Location(mSails.getLatitude(), mSails.getLongitude(), mSails.getAccuracy());
+                    locationSamples.add(lastLocation);
                     locCaptionTextView.setText(String.format(rateCaption, lastLocation.getLatitude(), lastLocation.getLongitude(), lastLocation.getAccuracy()));
                 }
             }
@@ -253,11 +257,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
 
-        if(sensor.getType() == Sensor.TYPE_ACCELEROMETER || sensor.getType() == Sensor.TYPE_GYROSCOPE){
+        /*if(sensor.getType() == Sensor.TYPE_ACCELEROMETER || sensor.getType() == Sensor.TYPE_GYROSCOPE){
             locationSamples.put(sensorEvent.timestamp, lastLocation);
-        }
+        }*/
         //activityPrediction();
-
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             updateTextAndGraphValues(sensorEvent.values, sensor.getType());
@@ -347,7 +350,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     isPressed = true;
                     registerSensorListener();
                     int counter = getFileCounter();
-                    DataFile = new File(dataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + counter);
+                    sensorDataFile = new File(sensorDataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + counter);
+                    locDataFile = new File(locDataDirectory, currentAction + "_" + currentUser + "_" + currentRoom + DataFileTemplate + counter);
                     ///fileCounter++;
                     System.out.println(currentAction + DataFileTemplate + counter);
                     setFileCounter(counter + 1);
@@ -538,20 +542,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         protected String doInBackground(Object... objects) {
 
             if (!accelerometerSamples.isEmpty() && !gyroscopeSamples.isEmpty()) {
-                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples, locationSamples);
+                List<HashMap> results = classifier.pairSignalsByTime(accelerometerSamples, gyroscopeSamples/*, locationSamples*/);
                 try {
-                    CSVUtils.writeSignal(DataFile, results);
+                    CSVUtils.writeSignal(sensorDataFile, results);
+                    CSVUtils.writeLocation(locDataFile, locationSamples);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
 
             accelerometerSamples.clear();
             gyroscopeSamples.clear();
             locationSamples.clear();
 
-            return DataFile.getName();
+            return sensorDataFile.getName();
         }
 
         protected void onPostExecute(String result) {

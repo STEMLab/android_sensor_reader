@@ -27,15 +27,28 @@ public class CSVUtils {
             String accelerometer = "'Accelerometer':" + " [" + String.format("%f", ((Signal) map.get("Accelerometer")).getX()) + ", "
                     + String.format("%f", ((Signal) map.get("Accelerometer")).getY()) + ", " + String.format("%f", ((Signal) map.get("Accelerometer")).getZ()) + "]";
             String time = "'Time':" + String.format("%d", (long) map.get("Time"));
-            String location = "'Location':" + " [" + BigDecimal.valueOf(((Location) map.get("Location")).getLatitude()).toPlainString() + ", "
-                    + BigDecimal.valueOf(((Location) map.get("Location")).getLongitude()).toPlainString() + ", " + String.format("%f", ((Location) map.get("Location")).getAccuracy()) + "]" + "}";
+            /*String location = "'Location':" + " [" + BigDecimal.valueOf(((Location) map.get("Location")).getLatitude()).toPlainString() + ", "
+                    + BigDecimal.valueOf(((Location) map.get("Location")).getLongitude()).toPlainString() + ", " + String.format("%f", ((Location) map.get("Location")).getAccuracy()) + "]" + "}";*/
             values.add(gyroscope);
             values.add(accelerometer);
             values.add(time);
-            values.add(location);
+            //values.add(location);
             writeLine(filename, values, SEPARATOR, ' ');
         }
 
+    }
+
+    public static void writeLocation(File filename, List<Location> locations) throws IOException {
+        for(Location location : locations){
+            List<String> values = new ArrayList<>();
+            String latitude = BigDecimal.valueOf(location.getLatitude()).toPlainString();
+            String longitude = BigDecimal.valueOf(location.getLongitude()).toPlainString();
+            String accuracy = String.format("%f", location.getAccuracy());
+            values.add(longitude);
+            values.add(latitude);
+            values.add(accuracy);
+            writeLine(filename, values, SEPARATOR, ' ');
+        }
     }
 
     public static void writeLine(File filename, float[] values) throws IOException {

@@ -192,7 +192,7 @@ public class TensorFlowClassifier {
         return result;
     }
 
-    public List<HashMap> pairSignalsByTime(List<Signal> accelerometerSamples, List<Signal> gyroscopeSamples, HashMap<Long, Location> locSamples) {
+    public List<HashMap> pairSignalsByTime(List<Signal> accelerometerSamples, List<Signal> gyroscopeSamples/*, HashMap<Long, Location> locSamples*/) {
         int idx1 = 0;
         int idx2 = 0;
         List<HashMap> whole = new ArrayList<>();
@@ -202,14 +202,14 @@ public class TensorFlowClassifier {
 
             long curTime1 = curItem1.getTimestamp() / timeScale;
             long curTime2 = curItem2.getTimestamp() / timeScale;
-            Location current = new Location();
-            if (locSamples.containsKey(curItem1.getTimestamp())) current = locSamples.get(curItem1.getTimestamp());
+            //Location current = new Location();
+            //if (locSamples.containsKey(curItem1.getTimestamp())) current = locSamples.get(curItem1.getTimestamp());
             if (abs(curTime1 - curTime2) < 0.1) {
                 HashMap curSaveElem = new HashMap();
                 curSaveElem.put("Time", (long) (0.5 * (curItem1.getTimestamp() + curItem2.getTimestamp())));
                 curSaveElem.put("Accelerometer", curItem1);
                 curSaveElem.put("Gyroscope", curItem2);
-                curSaveElem.put("Location", current);
+                //curSaveElem.put("Location", current);
                 whole.add(curSaveElem);
                 idx1 += 1;
                 idx2 += 1;
