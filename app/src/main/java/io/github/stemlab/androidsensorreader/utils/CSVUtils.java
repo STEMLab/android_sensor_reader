@@ -26,7 +26,7 @@ public class CSVUtils {
                     + String.format("%f", ((Signal) map.get("Gyroscope")).getY()) + ", " + String.format("%f", ((Signal) map.get("Gyroscope")).getZ()) + "]";
             String accelerometer = "'Accelerometer':" + " [" + String.format("%f", ((Signal) map.get("Accelerometer")).getX()) + ", "
                     + String.format("%f", ((Signal) map.get("Accelerometer")).getY()) + ", " + String.format("%f", ((Signal) map.get("Accelerometer")).getZ()) + "]";
-            String time = "'Time':" + String.format("%d", (long) map.get("Time"));
+            String time = "'Time':" + String.format("%d", (long) map.get("Time")) + "}";
             /*String location = "'Location':" + " [" + BigDecimal.valueOf(((Location) map.get("Location")).getLatitude()).toPlainString() + ", "
                     + BigDecimal.valueOf(((Location) map.get("Location")).getLongitude()).toPlainString() + ", " + String.format("%f", ((Location) map.get("Location")).getAccuracy()) + "]" + "}";*/
             values.add(gyroscope);

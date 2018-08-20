@@ -218,10 +218,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSails.setOnLocationChangeEventListener(new SAILS.OnLocationChangeEventListener() {
             @Override
             public void OnLocationChange() {
-                if (mSails.isLocationEngineStarted() && mSails.isLocationFix() && isPressed) {
+                if (mSails.isLocationEngineStarted() && mSails.isLocationFix()) {
                     lastLocation = new Location(mSails.getLatitude(), mSails.getLongitude(), mSails.getAccuracy());
-                    locationSamples.add(lastLocation);
                     locCaptionTextView.setText(String.format(rateCaption, lastLocation.getLatitude(), lastLocation.getLongitude(), lastLocation.getAccuracy()));
+                    if(isPressed){
+                        locationSamples.add(lastLocation);
+                    }
                 }
             }
         });
