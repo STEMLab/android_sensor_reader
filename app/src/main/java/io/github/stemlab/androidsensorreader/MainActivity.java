@@ -95,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //private IALocationManager mIALocationManager;
     private Location lastLocation;
     private SharedPreferences sPref;
+    private static String TOKEN = "8a5e3d1c9e664d43a25daba99348aee2";
+    private static String BUILDING_ID = "53f33cd1f45da9105f000931";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //set floor number sort rule from descending to ascending.
         mSails.setReverseFloorList(true);
 
-        mSails.loadCloudBuilding("8a5e3d1c9e664d43a25daba99348aee2", "53f33cd1f45da9105f000931", new SAILS.OnFinishCallback() {
+        mSails.loadCloudBuilding("TOKEN", "BUILDING_ID", new SAILS.OnFinishCallback() {
             @Override
             public void onSuccess(String s) {
                 runOnUiThread(new Runnable() {
