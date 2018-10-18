@@ -2,14 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.github.stemlab.androidsensorreader">
 
-    <uses-feature android:name="android.hardware.sensor.accelerometer"
+    <uses-feature
+        android:name="android.hardware.sensor.accelerometer"
         android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.compass"
+    <uses-feature
+        android:name="android.hardware.sensor.compass"
         android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.gyroscope"
+    <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
         android:required="true" />
-    <uses-feature android:name="android.hardware.wifi"
+    <uses-feature
+        android:name="android.hardware.wifi"
         android:required="true" />
+
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -18,6 +23,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -26,21 +32,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
-             android:screenOrientation="portrait">
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--indoor atlas meta-->
+        <!-- indoor atlas meta -->
         <meta-data
             android:name="com.indooratlas.android.sdk.API_KEY"
-            android:value="b572709e-4d98-492f-93df-8aea75af477a"/>
+            android:value="b572709e-4d98-492f-93df-8aea75af477a" />
         <meta-data
             android:name="com.indooratlas.android.sdk.API_SECRET"
-            android:value="XjBOjxDevEcE3Ym5mEtzLJtrWLwsNxkMTwDV0r7N8E5DLT9lz95xVcqEDJXJ8L1alUSnP5wMsE/rsiOibaUSa7zIvu79iXd3E69PKzHTK+6tPuzKutx+/h9aUalxVw=="/>
+            android:value="XjBOjxDevEcE3Ym5mEtzLJtrWLwsNxkMTwDV0r7N8E5DLT9lz95xVcqEDJXJ8L1alUSnP5wMsE/rsiOibaUSa7zIvu79iXd3E69PKzHTK+6tPuzKutx+/h9aUalxVw==" />
     </application>
 
 </manifest>
